@@ -49,6 +49,8 @@ class PostController extends BaseController
             return $this->sendError('Please Validate Error'  ,$validator->errors() );
         }
 
+        $user = Auth::user();
+        $input['user_id'] = $user->id;
         $post = Post::create( $input);
 
         return $this->sendResponse(new PostResource($post), 'Post Added Successfully' );
@@ -74,6 +76,25 @@ class PostController extends BaseController
 
     }
 
+        /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\Post  $post
+     * @return \Illuminate\Http\Response
+     */
+    public function userPosts($user_id)
+    {
+        $posts = Post::where('user_id', $user_id)->get();
+
+        if(is_null($posts))
+        {
+            return $this->sendError('Post Not Found');
+        }
+
+        return $this->sendResponse(new PostResource($posts), 'Post Found Successfully' );
+
+    }
+
 
     /**
      * Update the specified resource in storage.
@@ -96,13 +117,60 @@ class PostController extends BaseController
             return $this->sendError('Please Validate Error'  ,$validator->errors() );
         }
 
-        // $post->caption = $input['caption'];
-        // $post->content = $input['content'];
-        // $post->photo = $input['photo'];
+        if($post->user_id != Auth::id() )
+        {
+            return $this->sendError('You Dont Have Rights'  ,$validator->errors() );
+        }
 
         $post->fill($input)->save();
 
         return $this->sendResponse(new PostResource($post), 'Post Updated Successfully' );
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Post  $post
+     * @return \Illuminate\Http\Response
+     */
+    public function like(Post $post, $id)
+    {
+        $post = Post::find($id);
+
+        if(is_null($post))
+        {
+            return $this->sendError('Post Not Found');
+        }
+
+        ++$post->likes;
+        $post->save();
+
+        return $this->sendResponse(new PostResource($post), 'Post Liked Successfully' );
+
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Post  $post
+     * @return \Illuminate\Http\Response
+     */
+    public function dislike(Post $post, $id)
+    {
+        $post = Post::find($id);
+
+        if(is_null($post))
+        {
+            return $this->sendError('Post Not Found');
+        }
+
+        ++$post->dislikes;
+        $post->save();
+
+        return $this->sendResponse(new PostResource($post), 'Post Disliked Successfully' );
+
     }
 
     /**
@@ -113,6 +181,12 @@ class PostController extends BaseController
      */
     public function destroy(Post $post)
     {
+        $errorMessage = [] ;
+
+        if ( $post->user_id != Auth::id()) {
+            return $this->sendError('You Dont Have Rights' , $errorMessage);
+        }
+
         $post->delete();
         return $this->sendResponse(new PostResource($post), 'Post Deleted Successfully' );
     }

@@ -32,6 +32,18 @@ Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [LoginController::class, 'login']);
 
 Route::middleware('auth:api')->group( function(){
+
     Route::resource('posts', PostController::class);
+    Route::post('post/like/{id}', [PostController::class, 'like']);
+    Route::post('post/dislike/{id}', [PostController::class, 'dislike']);
+    Route::get('posts/user/{user_id}', [PostController::class, 'userPosts']);
+
+
     Route::resource('comments', CommentController::class);
+    Route::post('comment/like/{id}', [CommentController::class, 'like']);
+    Route::post('comment/dislike/{id}', [CommentController::class, 'dislike']);
+    Route::get('comments/user/{user_id}', [CommentController::class, 'userComments']);
+    Route::get('posts/{post_id}/comments', [CommentController::class, 'postComments']);
+    Route::get('posts/{post_id}/comments/{id}', [CommentController::class, 'postCommentReplies']);
+
 });

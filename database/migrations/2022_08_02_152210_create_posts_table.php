@@ -14,19 +14,20 @@ class CreatePostsTable extends Migration
     public function up()
     {
         Schema::create('posts', function (Blueprint $table) {
-            $table->increments('id');
-            $table->integer('user_id');
-            $table->string('caption')->nullable();
+            $table->bigIncrements('id');
+            $table->bigInteger('user_id')->unsigned();
+            $table->string('caption',100)->nullable();
             $table->longText('content')->nullable();
             $table->string('photo')->nullable();
             $table->string('slug');
             $table->integer('likes')->default(0);
             $table->integer('dislikes')->default(0);
-            $table->integer('parent_post_id')->unsigned()->nullable();
+            $table->bigInteger('parent_post_id')->unsigned()->nullable();
             $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('parent_post_id')->references('id')->on('posts')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
